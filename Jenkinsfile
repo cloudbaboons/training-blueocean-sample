@@ -44,9 +44,18 @@ pipeline {
     }
     stage('Deploy to Production') {
       steps {
-        input(message: 'Deploy to production?', ok: 'Fire away!')
-        sh './jenkins/deploy.sh production'
-        sh 'echo Notifying appropriate team members!'
+        parallel(
+          "Deploy to Production": {
+            input(message: 'Deploy to production?', ok: 'Fire away!')
+            sh './jenkins/deploy.sh production'
+            sh 'echo Notifying appropriate team members!'
+            
+          },
+          "permissions": {
+            input 'user input'
+            
+          }
+        )
       }
     }
   }
