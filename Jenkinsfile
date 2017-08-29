@@ -9,7 +9,12 @@ pipeline {
   stages {
     stage('build') {
       steps {
-        echo 'hello'
+        sh 'make'
+      }
+    }
+    stage('Test') {
+      steps {
+        sh 'make check'
       }
     }
   }
