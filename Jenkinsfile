@@ -14,7 +14,20 @@ pipeline {
     }
     stage('Test') {
       steps {
-        sh 'junit \'build/reports/**/*.xml\''
+        parallel(
+          "Test": {
+            sh 'junit \'build/reports/**/*.xml\''
+            
+          },
+          "hello 2": {
+            sh 'echo hello'
+            
+          },
+          "hello 3": {
+            echo 'test'
+            
+          }
+        )
       }
     }
   }
