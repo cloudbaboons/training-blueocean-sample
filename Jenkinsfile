@@ -1,33 +1,52 @@
 pipeline {
   agent {
     docker {
-      image 'maven:3-alpine'
-      args '-v $HOME/.m2:/root/.m2'
+      image 'bitwiseman/training-blueocean-sample'
+      args '-u root -v /home/jenkins/docker/.m2:/root/.m2'
     }
     
   }
   stages {
-    stage('build') {
+    stage('Build') {
       steps {
-        sh './mvnw'
+        sh './jenkins/build.sh'
+        archiveArtifacts 'target/*.war'
       }
     }
     stage('Test') {
       steps {
         parallel(
-          "Test": {
-            sh 'junit \'build/reports/**/*.xml\''
+          "Backend": {
+            sh './jenkins/test-backend.sh'
+            junit '**/surefire-reports/**/*.xml'
             
           },
-          "hello 2": {
-            sh 'echo hello'
+          "Frontend": {
+            sh './jenkins/test-frontend.sh'
+            junit '**/test-results/karma/*.xml'
             
           },
-          "hello 3": {
-            echo 'test'
+          "Static": {
+            sh './jenkins/test-static.sh'
+            
+          },
+          "Performance": {
+            sh './jenkins/test-performance.sh'
             
           }
         )
+      }
+    }
+    stage('Deploy to Staging') {
+      steps {
+        sh './jenkins/deploy.sh staging'
+      }
+    }
+    stage('Deploy to Production') {
+      steps {
+        input(message: 'Deploy to production?', ok: 'Fire away!')
+        sh './jenkins/deploy.sh production'
+        sh 'echo Notifying appropriate team members!'
       }
     }
   }
